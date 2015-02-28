@@ -1,0 +1,18 @@
+{
+    "name": "jeremygiberson/entropy",
+    "description": "A PHP Coding Game",
+    "authors": [
+        {
+            "name": "Jeremy Giberson",
+            "email": "jeremygiberson@gmail.com"
+        }
+    ],
+    "require": {
+
+    },
+    "autoload": {
+      "psr-4": {
+        "JeremyGiberson\\Entropy\\": "src/"
+      }
+    }
+}
