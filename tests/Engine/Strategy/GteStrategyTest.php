@@ -5,12 +5,13 @@
  * Time: 12:42 AM
  */
 
-namespace JeremyGiberson\Entropy\Engine\Strategy;
+namespace Entropy\Tests\Engine\Strategy;
 
 
 use JeremyGiberson\Entropy\Engine\Move\AttackMove;
 use JeremyGiberson\Entropy\Engine\Move\EndTurnMove;
 use JeremyGiberson\Entropy\Engine\Player;
+use JeremyGiberson\Entropy\Engine\Strategy\GteStrategy;
 use JeremyGiberson\Entropy\Engine\Territory\EmptyTerritory;
 use JeremyGiberson\Entropy\Engine\Territory\Territory;
 

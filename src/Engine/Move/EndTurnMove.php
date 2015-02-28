@@ -7,7 +7,9 @@
 
 namespace JeremyGiberson\Entropy\Engine\Move;
 
-
+/**
+ * @codeCoverageIgnore
+ */
 class EndTurnMove implements MoveInterface {
 
 }

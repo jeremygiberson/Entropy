@@ -7,7 +7,9 @@
 
 namespace JeremyGiberson\Entropy\Engine\Territory;
 
-
+/**
+ * @codeCoverageIgnore
+ */
 class EmptyTerritory extends Node {
 
 }

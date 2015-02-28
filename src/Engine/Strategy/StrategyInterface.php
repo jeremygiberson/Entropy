@@ -12,6 +12,9 @@ use JeremyGiberson\Entropy\Engine\Player;
 use JeremyGiberson\Entropy\Engine\Territory\Node;
 use JeremyGiberson\Entropy\Engine\Move\MoveInterface;
 
+/**
+ * @codeCoverageIgnore
+ */
 interface StrategyInterface
 {
     /**

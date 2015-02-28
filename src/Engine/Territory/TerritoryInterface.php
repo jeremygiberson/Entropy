@@ -7,7 +7,9 @@
 
 namespace JeremyGiberson\Entropy\Engine\Territory;
 
-
+/**
+ * @codeCoverageIgnore
+ */
 interface TerritoryInterface {
     /**
      * @return TerritoryInterface[]

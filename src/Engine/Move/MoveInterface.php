@@ -7,7 +7,9 @@
 
 namespace JeremyGiberson\Entropy\Engine\Move;
 
-
+/**
+ * @codeCoverageIgnore
+ */
 interface MoveInterface {
 
 }
