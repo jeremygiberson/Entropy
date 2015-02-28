@@ -13,7 +13,7 @@ use JeremyGiberson\Entropy\Engine\Player;
 class Territory extends Node implements TerritoryInterface
 {
     /** @var  int */
-    protected $number_of_dice;
+    protected $number_of_dice = 0;
     /** @var  Player */
     protected $owner;
 
