@@ -1,6 +1,8 @@
 # Entropy
 
 ![build status](https://travis-ci.org/jeremygiberson/Entropy.svg?branch=master)
+[![Code Climate](https://codeclimate.com/github/jeremygiberson/Entropy/badges/gpa.svg)](https://codeclimate.com/github/jeremygiberson/Entropy)
+[![Test Coverage](https://codeclimate.com/github/jeremygiberson/Entropy/badges/coverage.svg)](https://codeclimate.com/github/jeremygiberson/Entropy)
 
 Entropy is a game for programmers. How so? Well, in order to play you have to write the strategy you want to use.
 
