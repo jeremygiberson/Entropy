@@ -2,9 +2,15 @@ language: php
 php:
   - 5.5
   - hhvm
+addons:
+  code_climate:
+    repo_token: b47c19c0f1661ed91d5155569191bf6e05b16f7e932846885dde6f4748f790d7
+
 before_script:
   - composer install
 
 script:
   - vendor/bin/phpunit --coverage-clover build/logs/clover.xml tests
-  - CODECLIMATE_REPO_TOKEN=b47c19c0f1661ed91d5155569191bf6e05b16f7e932846885dde6f4748f790d7 ./vendor/bin/test-reporter
+
+after_script:
+  - vendor/bin/test-reporter
