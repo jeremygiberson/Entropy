@@ -223,4 +223,27 @@ class MutableIterator implements \Iterator, \ArrayAccess, \Countable
         end($this->collection);
         return current($this->collection);
     }
+
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
+        return $this->collection;
+    }
+
+    /**
+     * Remove all occurrences of value from the collection
+     * @param $value
+     */
+    public function remove($value)
+    {
+        foreach($this->collection as $key => $v)
+        {
+            if($value === $v)
+            {
+                unset($this->collection[$key]);
+            }
+        }
+    }
 }

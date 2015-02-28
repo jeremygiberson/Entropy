@@ -15,11 +15,13 @@ use JeremyGiberson\Entropy\Engine\Territory\Territory;
 use JeremyGiberson\Entropy\Engine\Territory\TerritoryInterface;
 use JeremyGiberson\Entropy\Engine\Move\EndTurnMove;
 use JeremyGiberson\Entropy\Factory\BoardFactory;
+use JeremyGiberson\Entropy\Iterator\MutableIterator;
+use RuntimeException;
 use SplObjectStorage;
 
 class Game
 {
-    /** @var SplObjectStorage */
+    /** @var Player[] */
     protected $players = [];
     /** @var  Scoreboard */
     protected $scoreboard;
@@ -29,7 +31,7 @@ class Game
     function __construct()
     {
         $this->territories = new \SplObjectStorage();
-        $this->players = new \SplObjectStorage();
+        $this->players = new MutableIterator();
     }
 
 
@@ -43,108 +45,50 @@ class Game
             throw new \RuntimeException("Can't add more players, already reached player limit");
         }
 
-        $this->players->attach($player);
+        $this->players[$this->players->last_key()+1] = $player;
     }
 
+    /**
+     * @param int $max_rounds
+     */
     public function play($max_rounds = 100)
     {
+        if(count($this->players) < 2)
+        {
+            throw new RuntimeException("game needs 2 to 8 players to run");
+        }
+        
         $this->scoreboard = new Scoreboard();
         $factory = new BoardFactory();
         $this->territories = $factory->create($this->players);
-
-        $active_players = $this->players;
 
         $round = 0;
         do {
             $round++;
 
-            $remove_players = [];
-
-            foreach($active_players as $player)
+            foreach($this->players as $player)
             {
-                do {
-                    /** @var StrategyInterface $strategy */
-                    $strategy = $player->getStrategy();
-                    //var_dump($player, $strategy);
-                    $move = $strategy->getMove($round, $player, $this->territories);
+                $this->playerTurn($round, $player);
 
-                    if($move instanceof AttackMove) {
-                        if (!$this->isValidAttack($player, $move)) {
-                            // disqualify player
-                            $this->scoreboard->addScore($player,
-                                $round,
-                                $this->countTerritories($player));
-                            $remove_players[] = $player;
-                            $move = new EndTurnMove();
-                        } else {
-                            $this->performAttack($player, $move);
-                        }
-                    } else if($move instanceof EndTurnMove) {
-                        // noop
-                    } else {
-                        // disqualify player
-                        $this->scoreboard->addScore($player,
-                            $round,
-                            $this->countTerritories($player));
-                        $remove_players[] = $player;
-                        $move = new EndTurnMove();
-                    }
-                } while (! $move instanceof EndTurnMove);
+                // add dice
+                $this->growPlayerTerritories($player);
             }
 
             // find conquered players
-            foreach($active_players as $check_player)
-            {
-                if($this->countTerritories($check_player) < 1)
-                {
-                    // disqualify player
-                    $this->scoreboard->addScore($check_player,
-                        $round,
-                        $this->countTerritories($check_player));
-                    $remove_players[] = $check_player;
-                }
-            }
-
-            // remove conquered/disqualified players
-            foreach($remove_players as $player)
-            {
-                $active_players->detach($player);
-            }
+            $this->removeConqueredPlayers($round);
 
             // everyone has been conquered
-            if(count($active_players) < 2)
+            if(count($this->players) < 2)
             {
                 break;
-            }
-
-            // add dice
-            // find conquered players
-            foreach($active_players as $check_player)
-            {
-                $count = $this->countTerritories($check_player);
-
-                do {
-                    $player_territories = $this->getPlayerGrowthTerritories($check_player);
-                    if(count($player_territories) < 1) {
-                        break;
-                    }
-
-                    $i = rand(0, count($player_territories)-1);
-                    $player_territories[$i]->setNumberOfDice(
-                        $player_territories[$i]->getNumberOfDice() + 1);
-                    $count--;
-                } while ($count > 0);
             }
 
         } while ($round < $max_rounds);
 
         // get ending round scores
-        foreach($active_players as $player)
+        foreach($this->players as $player)
         {
-            echo "adding score\n";
-            $this->scoreboard->addScore($player,
-                $round,
-                $this->countTerritories($player));
+            $this->removePlayer($round, $player);
         }
     }
 
@@ -152,7 +96,7 @@ class Game
      * @param Player $player
      * @return int
      */
-    protected function countTerritories($player)
+    protected function countTerritories(Player $player)
     {
         $count = 0;
         /** @var TerritoryInterface $territory */
@@ -171,7 +115,7 @@ class Game
      * @param AttackMove $move
      * @return bool
      */
-    protected function isValidAttack($player, AttackMove $move)
+    protected function isValidAttack(Player $player, AttackMove $move)
     {
         $attacker = $move->getAttacker();
         $defender = $move->getDefender();
@@ -193,7 +137,7 @@ class Game
      * @param Player $player
      * @param AttackMove $move
      */
-    protected function performAttack($player, AttackMove $move)
+    protected function performAttack(Player $player, AttackMove $move)
     {
         /** @var Territory $attacker */
         $attacker = $move->getAttacker();
@@ -224,7 +168,7 @@ class Game
      * @param Player $player
      * @return Territory[]
      */
-    protected function getPlayerGrowthTerritories($player)
+    protected function getPlayerGrowthTerritories(Player $player)
     {
         $territories = [];
         foreach($this->territories as $territory)
@@ -240,5 +184,66 @@ class Game
             }
         }
         return $territories;
+    }
+
+    protected function growPlayerTerritories(Player $player)
+    {
+        $count = $this->countTerritories($player);
+
+        do {
+            $player_territories = $this->getPlayerGrowthTerritories($player);
+            if(count($player_territories) < 1) {
+                break;
+            }
+
+            $i = rand(0, count($player_territories)-1);
+            $player_territories[$i]->setNumberOfDice(
+                $player_territories[$i]->getNumberOfDice() + 1);
+            $count--;
+        } while ($count > 0);
+    }
+
+    protected function removeConqueredPlayers($round)
+    {
+        foreach($this->players as $check_player)
+        {
+            if($this->countTerritories($check_player) < 1)
+            {
+                $this->removePlayer($round, $check_player);
+            }
+        }
+    }
+
+    protected function removePlayer($round, Player $player)
+    {
+        // disqualify player
+        $this->scoreboard->addScore($player,
+            $round,
+            $this->countTerritories($player));
+        $this->players->remove($player);
+    }
+
+    protected function playerTurn($round, Player $player)
+    {
+        do {
+            /** @var StrategyInterface $strategy */
+            $strategy = $player->getStrategy();
+
+            $move = $strategy->getMove($round, $player, $this->territories);
+
+            if($move instanceof AttackMove) {
+                if (!$this->isValidAttack($player, $move)) {
+                    // end turn for invalid attack
+                    $move = new EndTurnMove();
+                } else {
+                    $this->performAttack($player, $move);
+                }
+            } else if($move instanceof EndTurnMove) {
+                // noop
+            } else {
+                // end turn for invalid move
+                $move = new EndTurnMove();
+            }
+        } while (! $move instanceof EndTurnMove);
     }
 }

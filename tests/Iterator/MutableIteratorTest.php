@@ -12,6 +12,18 @@ use JeremyGiberson\Entropy\Iterator\MutableIterator;
 
 class MutableIteratorTest extends \PHPUnit_Framework_TestCase
 {
+    public function test_foreach_empty()
+    {
+        $iterator = new MutableIterator();
+        $iterations = 0;
+        foreach($iterator as $v)
+        {
+            $iterations++;
+        }
+        $this->assertEquals(0, $iterations,
+            'should not iterate over an empty iterator');
+    }
+
     public function test_foreach()
     {
         $iterator = new MutableIterator(range(1,10));
@@ -155,5 +167,23 @@ class MutableIteratorTest extends \PHPUnit_Framework_TestCase
             'mutation should have affected number of iterations');
         $this->assertCount(5, $iterator,
             'half the items should be removed from the iterator');
+    }
+
+    public function test_toArray()
+    {
+        $iterator = new MutableIterator($r = range(1,10));
+        $this->assertEquals($r, $iterator->toArray(),
+            'toArray should return iterator collection');
+    }
+
+    /**
+     * @depends test_toArray
+     */
+    public function test_remove()
+    {
+        $iterator = new MutableIterator(['foo','biz','baz']);
+        $iterator->remove('biz');
+        $this->assertEquals([0 => 'foo', 2 => 'baz'], $iterator->toArray(),
+            'biz should be removed from the collection');
     }
 }
